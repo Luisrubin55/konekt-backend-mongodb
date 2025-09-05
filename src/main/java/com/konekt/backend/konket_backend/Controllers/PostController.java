@@ -1,0 +1,92 @@
+package com.konekt.backend.konket_backend.Controllers;
+
+import com.konekt.backend.konket_backend.Entities.DTO.MessageDTO;
+import com.konekt.backend.konket_backend.Entities.DTO.PostWithUserDTO;
+import com.konekt.backend.konket_backend.Entities.Post;
+import com.konekt.backend.konket_backend.Entities.User;
+import com.konekt.backend.konket_backend.Middlewares.DecodedJWTValidation;
+import com.konekt.backend.konket_backend.Services.PostService.IPostService;
+import com.konekt.backend.konket_backend.Services.UserService.IUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/post")
+public class PostController {
+    @Autowired
+    private IPostService iPostService;
+
+    @Autowired
+    private IUserService iUserService;
+
+    @PostMapping
+    public ResponseEntity<?> AddNewPost(@RequestBody Post post, @RequestHeader("Authorization") String authHeader){
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User user = iUserService.getUserByEmail(email).orElseThrow();
+        post.setUserId(user.getId());
+        Post postSaved = iPostService.creaateNewPost(post);
+        MessageDTO message = new MessageDTO();
+        if(postSaved == null){
+            message.setMessage("Error al crear el post");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(postSaved);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> GetAllPosByUser(@RequestHeader("Authorization") String authHeader){
+        MessageDTO message = new MessageDTO();
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User user = iUserService.getUserByEmail(email).orElseThrow();
+        List<PostWithUserDTO> getAllPost = iPostService.getAllPostsByUser(user.getId());
+        if (getAllPost == null){
+            message.setMessage("Error al crear el post");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(getAllPost);
+    }
+
+    @GetMapping("/random-post")
+    public ResponseEntity<?> RandomPost() {
+        MessageDTO message = new MessageDTO();
+        List<PostWithUserDTO> getRandomPost = iPostService.randomPost();
+        if (getRandomPost == null){
+            message.setMessage("Error al recuperar los post");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(getRandomPost);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> UpdatePost(@PathVariable String id, @RequestBody Post post, @RequestHeader("Authorization") String authHeader){
+        Post postUpdated = iPostService.updatePost(id,post);
+        MessageDTO message = new MessageDTO();
+        if (postUpdated == null){
+            message.setMessage("Error al actualizar el post");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(postUpdated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> DeletePost(@PathVariable String id){
+        Post postDeleted = iPostService.deletePost(id);
+        MessageDTO message = new MessageDTO();
+        if (postDeleted == null){
+            message.setMessage("Error al eliminar el post");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        message.setMessage("Post eliminado");
+        message.setStatusCode(HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+    }
+}
