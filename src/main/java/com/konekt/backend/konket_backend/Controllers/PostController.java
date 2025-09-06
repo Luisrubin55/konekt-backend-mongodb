@@ -38,6 +38,12 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(postSaved);
     }
 
+    @PostMapping("/createPostImage")
+    public ResponseEntity<?> createPostWithImage(){
+        return null;
+    }
+
+
     @GetMapping
     public ResponseEntity<?> GetAllPosByUser(@RequestHeader("Authorization") String authHeader){
         MessageDTO message = new MessageDTO();
