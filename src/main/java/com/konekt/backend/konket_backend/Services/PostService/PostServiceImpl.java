@@ -2,11 +2,14 @@ package com.konekt.backend.konket_backend.Services.PostService;
 
 import com.konekt.backend.konket_backend.Entities.DTO.PostWithUserDTO;
 import com.konekt.backend.konket_backend.Entities.Post;
+import com.konekt.backend.konket_backend.Entities.UserImages;
 import com.konekt.backend.konket_backend.Repositories.PostRepository;
+import com.konekt.backend.konket_backend.Repositories.UserImagesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,11 +17,27 @@ import java.util.Optional;
 public class PostServiceImpl implements IPostService{
 
     @Autowired
-    PostRepository postRepository;
+    private PostRepository postRepository;
+
+    @Autowired
+    private UserImagesRepository userImagesRepository;
+
 
     @Override
     @Transactional
     public Post creaateNewPost(Post post) {
+        return postRepository.save(post);
+    }
+
+    @Override
+    public Post createPostWithImage(Post post, String urlImage) {
+        UserImages userImages = new UserImages();
+        userImages.setUrlImage(urlImage);
+        userImages.setIdUser(post.getUserId());
+        UserImages imagesBd = userImagesRepository.save(userImages);
+        List<String> idImage = new ArrayList<>();
+        idImage.add(imagesBd.getId());
+        post.setIdImages(idImage);
         return postRepository.save(post);
     }
 
@@ -36,7 +55,6 @@ public class PostServiceImpl implements IPostService{
         postUpdated.setContent(post.getContent());
         postUpdated.setComments(post.getComments());
         postUpdated.setLikes(post.getLikes());
-        postUpdated.setUrlImage(post.getUrlImage());
         return postRepository.save(postUpdated);
     }
 

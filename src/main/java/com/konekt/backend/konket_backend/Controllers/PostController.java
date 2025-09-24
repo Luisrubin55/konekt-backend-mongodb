@@ -1,6 +1,9 @@
 package com.konekt.backend.konket_backend.Controllers;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.konekt.backend.konket_backend.Entities.DTO.MessageDTO;
+import com.konekt.backend.konket_backend.Entities.DTO.PostRequestDTO;
 import com.konekt.backend.konket_backend.Entities.DTO.PostWithUserDTO;
 import com.konekt.backend.konket_backend.Entities.Post;
 import com.konekt.backend.konket_backend.Entities.User;
@@ -11,8 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/post")
@@ -22,6 +28,9 @@ public class PostController {
 
     @Autowired
     private IUserService iUserService;
+
+    @Autowired
+    private Cloudinary cloudinary;
 
     @PostMapping
     public ResponseEntity<?> AddNewPost(@RequestBody Post post, @RequestHeader("Authorization") String authHeader){
@@ -39,7 +48,15 @@ public class PostController {
     }
 
     @PostMapping("/createPostImage")
-    public ResponseEntity<?> createPostWithImage(){
+    public ResponseEntity<?> createPostWithImage(@RequestPart("file") MultipartFile file, @RequestPart("content") PostRequestDTO postRequest, @RequestHeader("Authorization") String authHeader) throws IOException {
+        MessageDTO message = new MessageDTO();
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User userBd = iUserService.getUserByEmail(email).orElseThrow();
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", "konekt"));
+        Post post = new Post();
+        post.setContent(postRequest.getContent());
+        post.setUserId(userBd.getId());
+        Post postBd = iPostService.createPostWithImage(post, uploadResult.get("secure_url").toString());
         return null;
     }
 
