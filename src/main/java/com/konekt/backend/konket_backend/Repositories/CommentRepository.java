@@ -18,4 +18,6 @@ public interface CommentRepository extends MongoRepository<Comment, String> {
             "{ $sort: { createdAt: -1 } }"
     })
     List<CommentWithUserDTO> findCommentsByPostId(String postId);
+
+    List<Comment> findByIdPost(String id);
 }

@@ -1,8 +1,10 @@
 package com.konekt.backend.konket_backend.Services.PostService;
 
+import com.konekt.backend.konket_backend.Entities.Comment;
 import com.konekt.backend.konket_backend.Entities.DTO.PostWithUserDTO;
 import com.konekt.backend.konket_backend.Entities.Post;
 import com.konekt.backend.konket_backend.Entities.UserImages;
+import com.konekt.backend.konket_backend.Repositories.CommentRepository;
 import com.konekt.backend.konket_backend.Repositories.PostRepository;
 import com.konekt.backend.konket_backend.Repositories.UserImagesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class PostServiceImpl implements IPostService{
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Autowired
     private UserImagesRepository userImagesRepository;
@@ -48,10 +53,11 @@ public class PostServiceImpl implements IPostService{
 
 
     @Override
-    public Post updatePost(String idPost, Post post) {
+    public Post updatePost(String idPost, Post post, String urlImage) {
         Optional<Post> postBd = postRepository.findById(idPost);
         if (postBd.isEmpty()) return null;
         Post postUpdated = postBd.orElseThrow();
+        if (!postUpdated.getUserId().equals(post.getUserId())) return null;
         postUpdated.setContent(post.getContent());
         postUpdated.setComments(post.getComments());
         postUpdated.setLikes(post.getLikes());
@@ -59,11 +65,15 @@ public class PostServiceImpl implements IPostService{
     }
 
     @Override
-    public Post deletePost(String postId) {
-        Optional<Post> post = postRepository.findById(postId);
-        if(post.isEmpty()) return null;
-        postRepository.delete(post.orElseThrow());
-        return post.orElseThrow();
+    public Post deletePost(String postId, String userId) {
+        Optional<Post> optionalPost = postRepository.findById(postId);
+        if(optionalPost.isEmpty()) return null;
+        Post postBd = optionalPost.orElseThrow();
+        if (!postBd.getUserId().equals(userId)) return null;
+        postRepository.delete(postBd);
+        List<Comment> comments = commentRepository.findByIdPost(postBd.getId());
+        if (!comments.isEmpty()) comments.forEach(comment -> commentRepository.delete(comment));
+        return postBd;
     }
 
     @Override

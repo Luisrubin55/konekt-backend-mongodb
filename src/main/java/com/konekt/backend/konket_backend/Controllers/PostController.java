@@ -48,16 +48,26 @@ public class PostController {
     }
 
     @PostMapping("/createPostImage")
-    public ResponseEntity<?> createPostWithImage(@RequestPart("file") MultipartFile file, @RequestPart("content") PostRequestDTO postRequest, @RequestHeader("Authorization") String authHeader) throws IOException {
+    public ResponseEntity<?> createPostWithImage(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart("content") PostRequestDTO postRequest, @RequestHeader("Authorization") String authHeader) throws IOException {
         MessageDTO message = new MessageDTO();
         String email = DecodedJWTValidation.decodedJWT(authHeader);
         User userBd = iUserService.getUserByEmail(email).orElseThrow();
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", "konekt"));
         Post post = new Post();
         post.setContent(postRequest.getContent());
         post.setUserId(userBd.getId());
+        if (file == null || file.isEmpty()){
+            Post postSaved = iPostService.creaateNewPost(post);
+            if (postSaved == null) return  ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(postSaved);
+        }
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", "konekt"));
         Post postBd = iPostService.createPostWithImage(post, uploadResult.get("secure_url").toString());
-        return null;
+        if(postBd == null){
+            message.setMessage("Error al crear el post");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(postBd);
     }
 
 
@@ -88,9 +98,22 @@ public class PostController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> UpdatePost(@PathVariable String id, @RequestBody Post post, @RequestHeader("Authorization") String authHeader){
-        Post postUpdated = iPostService.updatePost(id,post);
+    public ResponseEntity<?> UpdatePost(@RequestPart(value = "file", required = false) MultipartFile file, @PathVariable String id, @RequestBody Post post, @RequestHeader("Authorization") String authHeader) throws IOException {
         MessageDTO message = new MessageDTO();
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User user = iUserService.getUserByEmail(email).orElseThrow();
+        post.setUserId(user.getId());
+
+
+        if (file == null || file.isEmpty()){
+            Post postSaved = iPostService.updatePost(post);
+            if (postSaved == null) return  ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(postSaved);
+        }
+
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", "konekt"));
+        Post postUpdated = iPostService.updatePost(id,post,uploadResult.get("secure_url").toString());
+
         if (postUpdated == null){
             message.setMessage("Error al actualizar el post");
             message.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -100,8 +123,10 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> DeletePost(@PathVariable String id){
-        Post postDeleted = iPostService.deletePost(id);
+    public ResponseEntity<?> DeletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader){
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User user = iUserService.getUserByEmail(email).orElseThrow();
+        Post postDeleted = iPostService.deletePost(id, user.getId());
         MessageDTO message = new MessageDTO();
         if (postDeleted == null){
             message.setMessage("Error al eliminar el post");
