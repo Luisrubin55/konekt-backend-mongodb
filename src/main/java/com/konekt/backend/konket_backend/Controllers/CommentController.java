@@ -1,6 +1,7 @@
 package com.konekt.backend.konket_backend.Controllers;
 
 import com.konekt.backend.konket_backend.Entities.Comment;
+import com.konekt.backend.konket_backend.Entities.DTO.CommentWithUserDTO;
 import com.konekt.backend.konket_backend.Entities.DTO.MessageDTO;
 import com.konekt.backend.konket_backend.Entities.User;
 import com.konekt.backend.konket_backend.Middlewares.DecodedJWTValidation;
@@ -41,7 +42,7 @@ public class CommentController {
     @GetMapping("/{idPost}")
     public ResponseEntity<?> getCommentsByIdPost(@PathVariable String idPost){
         MessageDTO message = new MessageDTO();
-        List<Comment> commentsBd = iCommentService.getAllCommentsPost(idPost);
+        List<CommentWithUserDTO> commentsBd = iCommentService.getAllCommentsPost(idPost);
         if (commentsBd == null){
             message.setMessage("Aún no hay comentarios.");
             message.setStatusCode(HttpStatus.NO_CONTENT.value());

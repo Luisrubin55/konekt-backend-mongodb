@@ -1,6 +1,7 @@
 package com.konekt.backend.konket_backend.Services.CommentService;
 
 import com.konekt.backend.konket_backend.Entities.Comment;
+import com.konekt.backend.konket_backend.Entities.DTO.CommentWithUserDTO;
 import com.konekt.backend.konket_backend.Entities.Post;
 import com.konekt.backend.konket_backend.Repositories.CommentRepository;
 import com.konekt.backend.konket_backend.Repositories.PostRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements ICommentService{
@@ -22,8 +24,8 @@ public class CommentServiceImpl implements ICommentService{
     @Override
     public Comment addNewComment(String idPost, Comment comment) {
         Optional<Post> postBd = postRepository.findById(idPost);
-        Post postUpdated = postBd.orElseThrow();
         if(postBd.isEmpty()) return null;
+        Post postUpdated = postBd.orElseThrow();
         comment.setIdPost(idPost);
         Comment commentSaved = commentRepository.save(comment);
         List<String> comments = postUpdated.getComments();
@@ -34,8 +36,8 @@ public class CommentServiceImpl implements ICommentService{
     }
 
     @Override
-    public List<Comment> getAllCommentsPost(String idPost) {
-       return commentRepository.findAllByIdPost(idPost);
+    public List<CommentWithUserDTO> getAllCommentsPost(String idPost) {
+       return commentRepository.findCommentsByPostId(idPost);
     }
 
     @Override
@@ -43,6 +45,7 @@ public class CommentServiceImpl implements ICommentService{
         Optional<Comment> commentDd = commentRepository.findById(idComment);
         if (commentDd.isEmpty()) return  null;
         Comment commentUpdted = commentDd.orElseThrow();
+        if (!commentUpdted.getIdUser().equals(comment.getIdUser())) return null;
         commentUpdted.setContent(comment.getContent());
         commentUpdted.setUrlImage(comment.getUrlImage());
         return commentRepository.save(commentUpdted);
@@ -55,6 +58,12 @@ public class CommentServiceImpl implements ICommentService{
        Comment commentBd = optionalComment.orElseThrow();
        if (!commentBd.getIdUser().equals(idUser)) return null;
        commentRepository.deleteById(idComment);
+       Optional<Post> optionalPost = postRepository.findById(commentBd.getIdPost());
+       if (optionalPost.isEmpty()) return  null;
+       Post postBd = optionalPost.orElseThrow();
+       List<String> commentsFilter = postBd.getComments().stream().filter(comment -> !comment.equals(commentBd.getId())).toList();
+       postBd.setComments(commentsFilter);
+       postRepository.save(postBd);
        return commentBd;
     }
 }

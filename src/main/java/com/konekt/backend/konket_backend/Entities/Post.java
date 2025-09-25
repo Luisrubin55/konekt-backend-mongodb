@@ -14,11 +14,11 @@ public class Post {
     @Id
     private String id;
     private String content;
-    private String urlImage;
+    private List<String> idImages = new ArrayList<>();
     private List<String> comments = new ArrayList<>();
     private List<String> likes = new ArrayList<>();
     @CreatedDate
-    private LocalDateTime createdAt;   // fecha de creación automática
+    private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private String userId;
@@ -39,12 +39,12 @@ public class Post {
         this.content = content;
     }
 
-    public String getUrlImage() {
-        return urlImage;
+    public List<String> getIdImages() {
+        return idImages;
     }
 
-    public void setUrlImage(String urlImage) {
-        this.urlImage = urlImage;
+    public void setIdImages(List<String> idImages) {
+        this.idImages = idImages;
     }
 
     public List<String> getComments() {

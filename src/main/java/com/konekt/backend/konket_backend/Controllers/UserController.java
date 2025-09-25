@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.konekt.backend.konket_backend.Entities.DTO.MessageDTO;
 import com.konekt.backend.konket_backend.Entities.User;
+import com.konekt.backend.konket_backend.Entities.UserImages;
 import com.konekt.backend.konket_backend.Middlewares.DecodedJWTValidation;
 import com.konekt.backend.konket_backend.Services.UserService.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -66,5 +68,22 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
-
+    @GetMapping("/images-user")
+    public ResponseEntity<?> getAllImageByIdUser( @RequestHeader("Authorization") String authHeader) {
+        MessageDTO message = new MessageDTO();
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User userBd = iUserService.getUserByEmail(email).orElseThrow();
+        if (userBd == null){
+            message.setMessage("Error al recuperar el usuario");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        List<UserImages> userImages = iUserService.getPhotosByIdUser(userBd.getId());
+        if (userImages.isEmpty()){
+            message.setMessage("No hay imagenes");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(userImages);
+    }
 }

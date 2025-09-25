@@ -1,19 +1,14 @@
 package com.konekt.backend.konket_backend.Entities.DTO;
 
 import com.konekt.backend.konket_backend.Entities.User;
-import com.konekt.backend.konket_backend.Entities.UserImages;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-public class PostWithUserDTO {
+public class CommentWithUserDTO {
     private String id;
     private String content;
-    private List<UserImages> images = new ArrayList<>();
+    private String idPost;
     private LocalDateTime createdAt;
-    private List<String> comments = new ArrayList<>();
-    private List<String> likes = new ArrayList<>();
     private UserResponseFeedDTO user;
 
     public String getId() {
@@ -32,12 +27,12 @@ public class PostWithUserDTO {
         this.content = content;
     }
 
-    public List<UserImages> getImages() {
-        return images;
+    public String getIdPost() {
+        return idPost;
     }
 
-    public void setImages(List<UserImages> images) {
-        this.images = images;
+    public void setIdPost(String idPost) {
+        this.idPost = idPost;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -46,22 +41,6 @@ public class PostWithUserDTO {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public List<String> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<String> comments) {
-        this.comments = comments;
-    }
-
-    public List<String> getLikes() {
-        return likes;
-    }
-
-    public void setLikes(List<String> likes) {
-        this.likes = likes;
     }
 
     public UserResponseFeedDTO getUser() {

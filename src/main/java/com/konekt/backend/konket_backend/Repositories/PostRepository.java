@@ -15,7 +15,9 @@ public interface PostRepository extends MongoRepository<Post, String> {
             "{ $match: { userId: ?0 } }",
             "{ $addFields: { userIdObj: { $toObjectId: '$userId' } } }",
             "{ $lookup: { from: 'users', localField: 'userIdObj', foreignField: '_id', as: 'user' } }",
-            "{ $unwind: '$user' }"
+            "{ $unwind: '$user' }",
+            "{ $addFields: { idImagesObj: { $map: { input: '$idImages', as: 'imgId', in: { $toObjectId: '$$imgId' } } } } }",
+            "{ $lookup: { from: 'userImages', localField: 'idImagesObj', foreignField: '_id', as: 'images' } }"
     })
     List<PostWithUserDTO> findPostsByUserId(String userId);
 
@@ -23,6 +25,8 @@ public interface PostRepository extends MongoRepository<Post, String> {
             "{ $addFields: { userIdObj: { $toObjectId: '$userId' } } }",
             "{ $lookup: { from: 'users', localField: 'userIdObj', foreignField: '_id', as: 'user' } }",
             "{ $unwind: '$user' }",
+            "{ $addFields: { idImagesObj: { $map: { input: '$idImages', as: 'imgId', in: { $toObjectId: '$$imgId' } } } } }",
+            "{ $lookup: { from: 'userImages', localField: 'idImagesObj', foreignField: '_id', as: 'images' } }",
             "{ $sample: { size: ?0 } }"
     })
     List<PostWithUserDTO> findAllWithUsers(int size);
