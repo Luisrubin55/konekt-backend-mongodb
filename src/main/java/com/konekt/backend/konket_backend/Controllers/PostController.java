@@ -98,21 +98,23 @@ public class PostController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> UpdatePost(@RequestPart(value = "file", required = false) MultipartFile file, @PathVariable String id, @RequestBody Post post, @RequestHeader("Authorization") String authHeader) throws IOException {
+    public ResponseEntity<?> UpdatePost(@RequestPart(value = "file", required = false) MultipartFile file, @PathVariable String id, @RequestPart("content") PostRequestDTO postRequest, @RequestHeader("Authorization") String authHeader) throws IOException {
         MessageDTO message = new MessageDTO();
         String email = DecodedJWTValidation.decodedJWT(authHeader);
         User user = iUserService.getUserByEmail(email).orElseThrow();
+        Post post = new Post();
+        post.setContent(postRequest.getContent());
         post.setUserId(user.getId());
 
 
         if (file == null || file.isEmpty()){
-            Post postSaved = iPostService.updatePost(post);
+            Post postSaved = iPostService.updatePost(id,post);
             if (postSaved == null) return  ResponseEntity.badRequest().build();
             return ResponseEntity.status(HttpStatus.CREATED).body(postSaved);
         }
 
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", "konekt"));
-        Post postUpdated = iPostService.updatePost(id,post,uploadResult.get("secure_url").toString());
+        Post postUpdated = iPostService.updatePostWithImage(id,post,uploadResult.get("secure_url").toString());
 
         if (postUpdated == null){
             message.setMessage("Error al actualizar el post");
@@ -137,4 +139,21 @@ public class PostController {
         message.setStatusCode(HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
+
+    @DeleteMapping("/{postId}/image/{imageId}")
+    public ResponseEntity<?> DeleteImagePost(@PathVariable String postId, @PathVariable String imageId, @RequestHeader("Authorization") String authHeader){
+        String email = DecodedJWTValidation.decodedJWT(authHeader);
+        User user = iUserService.getUserByEmail(email).orElseThrow();
+        Post postDeleted = iPostService.deleteImageByPost(user.getId(), postId, imageId);
+        MessageDTO message = new MessageDTO();
+        if (postDeleted == null){
+            message.setMessage("Error al eliminar la imagen");
+            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        message.setMessage("Imagen eliminada");
+        message.setStatusCode(HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+    }
+
 }

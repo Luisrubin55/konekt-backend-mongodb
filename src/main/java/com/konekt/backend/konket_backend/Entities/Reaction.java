@@ -3,45 +3,52 @@ package com.konekt.backend.konket_backend.Entities;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-
 @Document(collection = "reactions")
 public class Reaction {
     @Id
-    private Long id;
-    private List<ReactionType> reactionTypes;
-    private User user;
-    private Post post;
+    private String id;
+    private String userId;
+    private String postId;
+    private String commentId;
+    private ReactionType type;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public List<ReactionType> getReactionTypes() {
-        return reactionTypes;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setReactionTypes(List<ReactionType> reactionTypes) {
-        this.reactionTypes = reactionTypes;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public User getUser() {
-        return user;
+    public String getPostId() {
+        return postId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setPostId(String postId) {
+        this.postId = postId;
     }
 
-    public Post getPost() {
-        return post;
+    public String getCommentId() {
+        return commentId;
     }
 
-    public void setPost(Post post) {
-        this.post = post;
+    public void setCommentId(String commentId) {
+        this.commentId = commentId;
+    }
+
+    public ReactionType getType() {
+        return type;
+    }
+
+    public void setType(ReactionType type) {
+        this.type = type;
     }
 }

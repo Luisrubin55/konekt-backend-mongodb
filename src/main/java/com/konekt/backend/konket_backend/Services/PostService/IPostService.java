@@ -9,7 +9,9 @@ public interface IPostService {
     Post creaateNewPost(Post post);
     Post createPostWithImage(Post post,String urlImage);
     List<PostWithUserDTO> getAllPostsByUser(String idUser);
-    Post updatePost(String idPost, Post post, String urlImage);
+    Post updatePost(String idPost, Post post);
+    Post updatePostWithImage(String postId, Post post, String urlImage);
     Post deletePost(String postId, String userId);
+    Post deleteImageByPost(String userId, String postId, String imageId);
     List<PostWithUserDTO> randomPost();
 }

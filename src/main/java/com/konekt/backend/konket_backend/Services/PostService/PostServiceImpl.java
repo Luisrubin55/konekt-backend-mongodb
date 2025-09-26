@@ -53,14 +53,32 @@ public class PostServiceImpl implements IPostService{
 
 
     @Override
-    public Post updatePost(String idPost, Post post, String urlImage) {
+    public Post updatePost(String idPost, Post post) {
         Optional<Post> postBd = postRepository.findById(idPost);
         if (postBd.isEmpty()) return null;
         Post postUpdated = postBd.orElseThrow();
         if (!postUpdated.getUserId().equals(post.getUserId())) return null;
         postUpdated.setContent(post.getContent());
-        postUpdated.setComments(post.getComments());
-        postUpdated.setLikes(post.getLikes());
+        return postRepository.save(postUpdated);
+    }
+
+    @Override
+    public Post updatePostWithImage(String postId, Post post, String urlImage) {
+        Optional<Post> optionalPost = postRepository.findById(postId);
+        if (optionalPost.isEmpty()) return null;
+        Post postUpdated = optionalPost.orElseThrow();
+        if (!postUpdated.getUserId().equals(post.getUserId())) return null;
+
+        UserImages userImages = new UserImages();
+        userImages.setUrlImage(urlImage);
+        userImages.setIdUser(postUpdated.getUserId());
+        UserImages imagesBd = userImagesRepository.save(userImages);
+
+        List<String> userImagesIds = postUpdated.getIdImages();
+        userImagesIds.add(imagesBd.getId());
+
+        postUpdated.setContent(post.getContent());
+        postUpdated.setIdImages(userImagesIds);
         return postRepository.save(postUpdated);
     }
 
@@ -74,6 +92,21 @@ public class PostServiceImpl implements IPostService{
         List<Comment> comments = commentRepository.findByIdPost(postBd.getId());
         if (!comments.isEmpty()) comments.forEach(comment -> commentRepository.delete(comment));
         return postBd;
+    }
+
+    @Override
+    public Post deleteImageByPost(String userId, String postId, String imageId) {
+        Optional<Post> postOptional = postRepository.findById(postId);
+        if (postOptional.isEmpty()) return null;
+        Post postBd = postOptional.orElseThrow();
+        if (!postBd.getUserId().equals(userId)) return null;
+        Optional<UserImages> userImagesBd = userImagesRepository.findById(imageId);
+        if (userImagesBd.isEmpty()) return null;
+        userImagesRepository.delete(userImagesBd.orElseThrow());
+        List<String> imagesIds = postBd.getIdImages();
+        List<String> listImagesFilter = imagesIds.stream().filter(image -> !image.equals(imageId)).toList();
+        postBd.setIdImages(listImagesFilter);
+        return postRepository.save(postBd);
     }
 
     @Override
