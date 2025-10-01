@@ -3,13 +3,16 @@ package com.konekt.backend.konket_backend.Entities.DTO;
 import com.konekt.backend.konket_backend.Entities.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class CommentWithUserDTO {
     private String id;
     private String content;
     private String idPost;
     private LocalDateTime createdAt;
+    private List<ReactionResponseDTO> likes;
     private UserResponseFeedDTO user;
+
 
     public String getId() {
         return id;
@@ -49,5 +52,13 @@ public class CommentWithUserDTO {
 
     public void setUser(UserResponseFeedDTO user) {
         this.user = user;
+    }
+
+    public List<ReactionResponseDTO> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<ReactionResponseDTO> likes) {
+        this.likes = likes;
     }
 }
