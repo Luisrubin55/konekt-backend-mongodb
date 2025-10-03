@@ -3,6 +3,7 @@ package com.konekt.backend.konket_backend.Controllers;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.konekt.backend.konket_backend.Entities.DTO.MessageDTO;
+import com.konekt.backend.konket_backend.Entities.DTO.UserResponseFeedDTO;
 import com.konekt.backend.konket_backend.Entities.User;
 import com.konekt.backend.konket_backend.Entities.UserImages;
 import com.konekt.backend.konket_backend.Middlewares.DecodedJWTValidation;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user")
@@ -36,6 +38,18 @@ public class UserController {
         if (userBd == null){
             message.setMessage("Error al recuperar el usuario");
             message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(userBd);
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username){
+        MessageDTO message = new MessageDTO();
+        Optional<UserResponseFeedDTO> userBd = iUserService.getUserByUsername(username);
+        if (userBd.isEmpty()){
+            message.setMessage("Error al recuperar el usuario");
+            message.setStatusCode(HttpStatus.NOT_FOUND.value());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
         return ResponseEntity.status(HttpStatus.OK).body(userBd);
