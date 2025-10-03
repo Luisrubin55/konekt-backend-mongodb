@@ -13,7 +13,7 @@ public class PostWithUserDTO {
     private List<UserImages> images = new ArrayList<>();
     private LocalDateTime createdAt;
     private List<String> comments = new ArrayList<>();
-    private List<String> likes = new ArrayList<>();
+    private List<ReactionResponseDTO> likes;
     private UserResponseFeedDTO user;
 
     public String getId() {
@@ -56,11 +56,11 @@ public class PostWithUserDTO {
         this.comments = comments;
     }
 
-    public List<String> getLikes() {
+    public List<ReactionResponseDTO> getLikes() {
         return likes;
     }
 
-    public void setLikes(List<String> likes) {
+    public void setLikes(List<ReactionResponseDTO> likes) {
         this.likes = likes;
     }
 

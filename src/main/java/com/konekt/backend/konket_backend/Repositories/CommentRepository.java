@@ -14,6 +14,8 @@ public interface CommentRepository extends MongoRepository<Comment, String> {
             "{ $match: { idPost: ?0 } }",
             "{ $addFields: { userIdObj: { $toObjectId: '$idUser' } } }",
             "{ $lookup: { from: 'users', localField: 'userIdObj', foreignField: '_id', as: 'user' } }",
+            "{ $addFields: { likesObj: { $map: { input: '$likes', as: 'likeId', in: { $toObjectId: '$$likeId' } } } } }",
+            "{ $lookup: { from: 'reactions', localField: 'likesObj', foreignField: '_id', as: 'likes' } }",
             "{ $unwind: '$user' }",
             "{ $sort: { createdAt: -1 } }"
     })

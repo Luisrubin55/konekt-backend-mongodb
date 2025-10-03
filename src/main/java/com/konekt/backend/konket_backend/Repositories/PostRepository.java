@@ -17,7 +17,10 @@ public interface PostRepository extends MongoRepository<Post, String> {
             "{ $lookup: { from: 'users', localField: 'userIdObj', foreignField: '_id', as: 'user' } }",
             "{ $unwind: '$user' }",
             "{ $addFields: { idImagesObj: { $map: { input: '$idImages', as: 'imgId', in: { $toObjectId: '$$imgId' } } } } }",
-            "{ $lookup: { from: 'userImages', localField: 'idImagesObj', foreignField: '_id', as: 'images' } }"
+            "{ $lookup: { from: 'userImages', localField: 'idImagesObj', foreignField: '_id', as: 'images' } }",
+            "{ $addFields: { likesObj: { $map: { input: '$likes', as: 'likeId', in: { $toObjectId: '$$likeId' } } } } }",
+            "{ $lookup: { from: 'reactions', localField: 'likesObj', foreignField: '_id', as: 'likes' } }",
+            "{ $sort: { createdAt: -1 } }"
     })
     List<PostWithUserDTO> findPostsByUserId(String userId);
 
@@ -27,6 +30,9 @@ public interface PostRepository extends MongoRepository<Post, String> {
             "{ $unwind: '$user' }",
             "{ $addFields: { idImagesObj: { $map: { input: '$idImages', as: 'imgId', in: { $toObjectId: '$$imgId' } } } } }",
             "{ $lookup: { from: 'userImages', localField: 'idImagesObj', foreignField: '_id', as: 'images' } }",
+            "{ $addFields: { likesObj: { $map: { input: '$likes', as: 'likeId', in: { $toObjectId: '$$likeId' } } } } }",
+            "{ $lookup: { from: 'reactions', localField: 'likesObj', foreignField: '_id', as: 'likes' } }",
+            "{ $sort: { createdAt: -1 } }",
             "{ $sample: { size: ?0 } }"
     })
     List<PostWithUserDTO> findAllWithUsers(int size);

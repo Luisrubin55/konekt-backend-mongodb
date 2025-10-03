@@ -1,5 +1,7 @@
 package com.konekt.backend.konket_backend.Services.UserService;
 
+import com.konekt.backend.konket_backend.Entities.DTO.UserRequestDTO;
+import com.konekt.backend.konket_backend.Entities.DTO.UserResponseFeedDTO;
 import com.konekt.backend.konket_backend.Entities.User;
 import com.konekt.backend.konket_backend.Entities.UserImages;
 import com.konekt.backend.konket_backend.Repositories.UserImagesRepository;
@@ -22,6 +24,11 @@ public class UserServiceImpl implements IUserService{
     @Override
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<UserResponseFeedDTO> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     @Override
