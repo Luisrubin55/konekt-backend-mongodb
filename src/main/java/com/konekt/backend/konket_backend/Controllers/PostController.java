@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.konekt.backend.konket_backend.Entities.DTO.MessageDTO;
 import com.konekt.backend.konket_backend.Entities.DTO.PostRequestDTO;
 import com.konekt.backend.konket_backend.Entities.DTO.PostWithUserDTO;
+import com.konekt.backend.konket_backend.Entities.DTO.UserResponseFeedDTO;
 import com.konekt.backend.konket_backend.Entities.Post;
 import com.konekt.backend.konket_backend.Entities.User;
 import com.konekt.backend.konket_backend.Middlewares.DecodedJWTValidation;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/post")
@@ -71,12 +73,16 @@ public class PostController {
     }
 
 
-    @GetMapping
-    public ResponseEntity<?> GetAllPosByUser(@RequestHeader("Authorization") String authHeader){
+    @GetMapping("/{username}")
+    public ResponseEntity<?> GetAllPostByUser(@PathVariable String username){
         MessageDTO message = new MessageDTO();
-        String email = DecodedJWTValidation.decodedJWT(authHeader);
-        User user = iUserService.getUserByEmail(email).orElseThrow();
-        List<PostWithUserDTO> getAllPost = iPostService.getAllPostsByUser(user.getId());
+        Optional<UserResponseFeedDTO> userBd = iUserService.getUserByUsername(username);
+        if (userBd.isEmpty()){
+            message.setMessage("Usuario no encontrado");
+            message.setStatusCode(HttpStatus.NOT_FOUND.value());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+        }
+        List<PostWithUserDTO> getAllPost = iPostService.getAllPostsByUser(userBd.orElseThrow().getId());
         if (getAllPost == null){
             message.setMessage("Error al crear el post");
             message.setStatusCode(HttpStatus.BAD_REQUEST.value());

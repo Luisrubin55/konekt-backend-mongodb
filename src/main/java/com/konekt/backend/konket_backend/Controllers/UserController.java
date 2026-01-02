@@ -82,17 +82,16 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
-    @GetMapping("/images-user")
-    public ResponseEntity<?> getAllImageByIdUser( @RequestHeader("Authorization") String authHeader) {
+    @GetMapping("/images-user/{username}")
+    public ResponseEntity<?> getAllImageByIdUser( @PathVariable String username) {
         MessageDTO message = new MessageDTO();
-        String email = DecodedJWTValidation.decodedJWT(authHeader);
-        User userBd = iUserService.getUserByEmail(email).orElseThrow();
-        if (userBd == null){
-            message.setMessage("Error al recuperar el usuario");
-            message.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        Optional<UserResponseFeedDTO> userBd = iUserService.getUserByUsername(username);
+        if (userBd.isEmpty()){
+            message.setMessage("Usuario no encontrado");
+            message.setStatusCode(HttpStatus.NOT_FOUND.value());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
         }
-        List<UserImages> userImages = iUserService.getPhotosByIdUser(userBd.getId());
+        List<UserImages> userImages = iUserService.getPhotosByIdUser(userBd.orElseThrow().getId());
         if (userImages.isEmpty()){
             message.setMessage("No hay imagenes");
             message.setStatusCode(HttpStatus.BAD_REQUEST.value());
